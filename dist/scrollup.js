@@ -38,23 +38,28 @@
   /**
    * Global vars.
    */
-  var isInitialState = true;
-  var triggerVisible = false;
+  var isInitialStateUp = true;
+  var isInitialStateDown = true;
+  var triggerUpVisible = false;
+  var triggerDownVisible = false;
   var start;
   var startPos;
   var scrollToPos;
   var animationId;
   var settings;
-  var triggerElem;
+  var triggerElemUp;
+  var triggerElemDown;
   var scrollEventThrottled;
-
+  
   /**
    * Default options.
    * @type {Object}
    */
   var defaults = {
     triggerTemplate: false,
+    triggerDownTemplate: false,
     scrollDistance: 400,
+    scrollDistanceFromBottom: 400,
     scrollThrottle: 250,
     scrollDuration: 500,
     scrollEasing: 'linear',
@@ -205,9 +210,13 @@
    * Get scroll Y position.
    * @return {Number} The scroll Y position
    */
-  var getScrollY = function () {
+  var getScrollFromTop = function () {
     return (window.pageYOffset !== undefined) ?
       window.pageYOffset : (document.documentElement || document.body.parentNode || document.body).scrollTop;
+  };
+
+  var getScrollFromBottom = function () {
+	  return document.body.clientHeight - window.innerHeight - getScrollFromTop();
   };
 
   /**
@@ -276,7 +285,8 @@
 
     // Callback.
     if (settings.onTop) {
-      settings.onTop.call(triggerElem);
+      settings.onTop.call(triggerElemUp);
+      settings.onTop.call(triggerElemDown);
     }
   };
 
@@ -284,32 +294,52 @@
    * Scroll event.
    */
   var scrollEvent = function () {
-    if (getScrollY() > settings.scrollDistance) {
-      if (triggerVisible) {
-        return;
-      }
-
-      ScrollUp.showTrigger();
+    if (getScrollFromTop() > settings.scrollDistance) {
+      if (!triggerUpVisible) {
+		ScrollUp.showUpTrigger();
+	  }	
     } else {
-      if (!triggerVisible) {
-        return;
-      }
+      if (triggerUpVisible) {
+		ScrollUp.hideUpTrigger();
+	  }
+    }
 
-      ScrollUp.hideTrigger();
+    var scrollfrombottom = getScrollFromBottom();
+    if (scrollfrombottom > settings.scrollDistanceFromBottom) {
+      if (!triggerDownVisible) {
+		ScrollUp.showDownTrigger();
+	  }	
+    } else {
+      if (triggerDownVisible) {
+		ScrollUp.hideDownTrigger();
+	  }
     }
   };
 
   /**
    * Trigger click event.
    */
-  var triggerClickEvent = function (event) {
+  var triggerUpClickEvent = function (event) {
     event.preventDefault();
 
     // Set where we're scrolling to.
     scrollToPos = getElemY(document.querySelector(settings.scrollTarget)) || 0;
 
     // Set the start position.
-    startPos = getScrollY();
+    startPos = getScrollFromTop();
+
+    // Run animation.
+    animationId = requestAnimationFrame(animationLoop);
+  };
+
+  var triggerDownClickEvent = function (event) {
+    event.preventDefault();
+
+    // Set where we're scrolling to.
+    scrollToPos = document.body.clientHeight - window.innerHeight;
+
+    // Set the start position.
+    startPos = getScrollFromTop();
 
     // Run animation.
     animationId = requestAnimationFrame(animationLoop);
@@ -360,76 +390,127 @@
     ScrollUp.settings = settings = extend(defaults, options || {});
 
     // Create trigger if needed.
-    triggerElem = settings.triggerTemplate ? createTrigger(settings.triggerTemplate) : document.querySelector(elem);
+    triggerElemUp = settings.triggerTemplate ? createTrigger(settings.triggerTemplate) : document.querySelector(elem);
+    triggerElemDown = settings.triggerDownTemplate ? createTrigger(settings.triggerDownTemplate) : document.querySelector(elem);
 
     // Events.
     scrollEventThrottled = throttle(scrollEvent, settings.scrollThrottle);
     settings.scrollElement.addEventListener('scroll', scrollEventThrottled, false);
-    triggerElem.addEventListener('click', triggerClickEvent, false);
+    triggerElemUp.addEventListener('click', triggerUpClickEvent, false);
+    triggerElemDown.addEventListener('click', triggerDownClickEvent, false);
 
     // Callback.
     if (settings.onInit) {
-      settings.onInit.call(triggerElem);
+      settings.onInit.call(triggerElemUp);
+      settings.onInit.call(triggerElemDown);
     }
   };
 
   /**
    * Show trigger.
    */
-  ScrollUp.showTrigger = function () {
+  ScrollUp.showUpTrigger = function () {
 
     // Check initial state to add init class.
-    if (isInitialState) {
-      ScrollUp.handleInitialState();
+    if (isInitialStateUp) {
+      ScrollUp.handleInitialStateUp();
     }
 
     // Remove hide class.
-    if (triggerElem.classList.contains(settings.classes.hide)) {
-      triggerElem.classList.remove(settings.classes.hide);
+    if (triggerElemUp.classList.contains(settings.classes.hide)) {
+      triggerElemUp.classList.remove(settings.classes.hide);
     }
 
     // Add show class.
-    triggerElem.classList.add(settings.classes.show);
+    triggerElemUp.classList.add(settings.classes.show);
 
     // Set global state var.
-    triggerVisible = true;
+    triggerUpVisible = true;
 
     // Callback.
     if (settings.onShow) {
-      settings.onShow.call(triggerElem);
+      settings.onShow.call(triggerElemUp);
     }
   };
 
   /**
    * Hide trigger.
    */
-  ScrollUp.hideTrigger = function () {
+  ScrollUp.hideUpTrigger = function () {
 
     // Remove show class.
-    if (triggerElem.classList.contains(settings.classes.show)) {
-      triggerElem.classList.remove(settings.classes.show);
+    if (triggerElemUp.classList.contains(settings.classes.show)) {
+      triggerElemUp.classList.remove(settings.classes.show);
     }
 
     // Add hide class.
-    triggerElem.classList.add(settings.classes.hide);
+    triggerElemUp.classList.add(settings.classes.hide);
 
     // Set global state var.
-    triggerVisible = false;
+    triggerUpVisible = false;
 
     // Callback.
     if (settings.onHide) {
-      settings.onHide.call(triggerElem);
+      settings.onHide.call(triggerElemUp);
     }
   };
 
   /**
    * Handle the initial state. Adds the init class.
    */
-  ScrollUp.handleInitialState = function () {
-    triggerElem.classList.add(settings.classes.init);
+  ScrollUp.handleInitialStateUp = function () {
+    triggerElemUp.classList.add(settings.classes.init);
 
     // Set global state var.
-    isInitialState = false;
+    isInitialStateUp = false;
+  };
+
+  ScrollUp.handleInitialStateDown = function () {
+    triggerElemDown.classList.add(settings.classes.init);
+
+    // Set global state var.
+    isInitialStateDown = false;
+  };
+
+  ScrollUp.showDownTrigger = function () {
+    // Check initial state to add init class.
+    if (isInitialStateDown) {
+      ScrollUp.handleInitialStateDown();
+    }
+
+    // Remove hide class.
+    if (triggerElemDown.classList.contains(settings.classes.hide)) {
+      triggerElemDown.classList.remove(settings.classes.hide);
+    }
+
+    // Add show class.
+    triggerElemDown.classList.add(settings.classes.show);
+
+    // Set global state var.
+    triggerDownVisible = true;
+
+    // Callback.
+    if (settings.onShow) {
+      settings.onShow.call(triggerElemDown);
+    }
+  };
+
+  ScrollUp.hideDownTrigger = function () {
+    // Remove show class.
+    if (triggerElemDown.classList.contains(settings.classes.show)) {
+      triggerElemDown.classList.remove(settings.classes.show);
+    }
+
+    // Add hide class.
+    triggerElemDown.classList.add(settings.classes.hide);
+
+    // Set global state var.
+    triggerDownVisible = false;
+
+    // Callback.
+    if (settings.onHide) {
+      settings.onHide.call(triggerElemDown);
+    }
   };
 
   /**
@@ -444,27 +525,35 @@
 
     // Remove events.
     settings.scrollElement.removeEventListener('scroll', scrollEventThrottled);
-    triggerElem.removeEventListener('click', triggerClickEvent);
+    triggerElemUp.removeEventListener('click', triggerUpClickEvent);
+    triggerElemDown.removeEventListener('click', triggerDownClickEvent);
 
     // Remove DOM element, if created.
     if (settings.triggerTemplate) {
-      triggerElem.parentNode.removeChild(triggerElem);
+      triggerElemUp.parentNode.removeChild(triggerElemUp);
+    }
+    if (settings.triggerDownTemplate) {
+      triggerElemDown.parentNode.removeChild(triggerElemDown);
     }
 
     // Callback.
     if (settings.onDestroy) {
-      settings.onDestroy.call(triggerElem);
+      settings.onDestroy.call(triggerElemUp);
+      settings.onDestroy.call(triggerElemDown);
     }
 
     // Reset variables.
-    isInitialState = true;
-    triggerVisible = false;
+    isInitialStateUp = true;
+    isInitialStateDown = true;
+    triggerUpVisible = false;
+    triggerDownVisible = false;
     start = null;
     startPos = null;
     scrollToPos = null;
     animationId = null;
     settings = null;
-    triggerElem = null;
+    triggerElemUp = null;
+    triggerElemDown = null;
     scrollEventThrottled = null;
   };
 
