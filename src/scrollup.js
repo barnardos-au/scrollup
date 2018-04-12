@@ -210,7 +210,7 @@
   };
 
   var getScrollFromBottom = function () {
-	  return document.body.clientHeight - window.innerHeight - getScrollFromTop();
+	  return getDocHeight() - window.innerHeight - getScrollFromTop();
   };
 
   /**
@@ -330,7 +330,7 @@
     event.preventDefault();
 
     // Set where we're scrolling to.
-    scrollToPos = document.body.clientHeight - window.innerHeight;
+    scrollToPos = getDocHeight() - window.innerHeight;
 
     // Set the start position.
     startPos = getScrollFromTop();
