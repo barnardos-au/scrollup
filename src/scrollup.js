@@ -239,6 +239,26 @@
   };
 
   /**
+   * Stop animation.
+   */
+  var stopAninmation = function () {
+
+    // Reset vars.
+    start = null;
+    startPos = null;
+    scrollToPos = null;
+
+    // Cancel the animation.
+    cancelAnimationFrame(animationId);
+
+    // Callback.
+    if (settings.onTop) {
+      settings.onTop.call(triggerElemUp);
+      settings.onTop.call(triggerElemDown);
+    }
+  };
+
+  /**
    * Scrolling to top loop animation.
    * @param {Number} time - Timestamp from rAF.
    */
@@ -265,29 +285,9 @@
   };
 
   /**
-   * Stop animation.
-   */
-  var stopAninmation = function () {
-
-    // Reset vars.
-    start = null;
-    startPos = null;
-    scrollToPos = null;
-
-    // Cancel the animation.
-    cancelAnimationFrame(animationId);
-
-    // Callback.
-    if (settings.onTop) {
-      settings.onTop.call(triggerElemUp);
-      settings.onTop.call(triggerElemDown);
-    }
-  };
-
-  /**
    * Scroll event.
    */
-  var scrollEvent = function () {
+  var evaluateAndShowTriggers = function () {
     if (getScrollFromTop() > settings.scrollDistance) {
       if (!triggerUpVisible) {
 		ScrollUp.showUpTrigger();
@@ -310,6 +310,10 @@
     }
   };
 
+  var scrollEvent = function () {
+	  evaluateAndShowTriggers();
+  };
+  
   /**
    * Trigger click event.
    */
@@ -398,6 +402,8 @@
       settings.onInit.call(triggerElemUp);
       settings.onInit.call(triggerElemDown);
     }
+	
+	evaluateAndShowTriggers();
   };
 
   /**
