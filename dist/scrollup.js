@@ -65,6 +65,7 @@
     scrollEasing: 'linear',
     scrollTarget: false,
     scrollElement: window,
+	showTriggersOnInit: false,
     classes: {
       init: 'scrollup--init',
       show: 'scrollup--show',
@@ -409,7 +410,9 @@
       settings.onInit.call(triggerElemDown);
     }
 	
-	evaluateAndShowTriggers();
+	if (settings.showTriggersOnInit) {
+		evaluateAndShowTriggers();
+	}
   };
 
   /**
