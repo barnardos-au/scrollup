@@ -324,7 +324,7 @@
 
     // Run animation.
     animationId = requestAnimationFrame(animationLoop);
-  }
+  };
 
   /**
    * Trigger click event.
@@ -344,7 +344,7 @@
 
     // Run animation.
     animationId = requestAnimationFrame(animationLoop);
-  }
+  };
 
   var triggerDownClickEvent = function (event) {
     event.preventDefault();
