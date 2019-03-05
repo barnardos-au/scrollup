@@ -315,12 +315,7 @@
 	  evaluateAndShowTriggers();
   };
   
-  /**
-   * Trigger click event.
-   */
-  var triggerUpClickEvent = function (event) {
-    event.preventDefault();
-
+  var scrollToTop = function() {
     // Set where we're scrolling to.
     scrollToPos = getElemY(document.querySelector(settings.scrollTarget)) || 0;
 
@@ -329,11 +324,18 @@
 
     // Run animation.
     animationId = requestAnimationFrame(animationLoop);
-  };
+  }
 
-  var triggerDownClickEvent = function (event) {
+  /**
+   * Trigger click event.
+   */
+  var triggerUpClickEvent = function (event) {
     event.preventDefault();
 
+    scrollToTop();
+  };
+
+  var scrollToBottom = function() {
     // Set where we're scrolling to.
     scrollToPos = getDocHeight() - window.innerHeight;
 
@@ -342,6 +344,12 @@
 
     // Run animation.
     animationId = requestAnimationFrame(animationLoop);
+  }
+
+  var triggerDownClickEvent = function (event) {
+    event.preventDefault();
+
+    scrollToBottom();
   };
 
   /**
@@ -514,6 +522,14 @@
     if (settings.onHide) {
       settings.onHide.call(triggerElemDown);
     }
+  };
+
+  ScrollUp.scrollUp = function () {
+    scrollToTop();
+  };
+
+  ScrollUp.scrollDown = function () {
+    scrollToBottom();
   };
 
   /**
